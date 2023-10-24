@@ -19,7 +19,13 @@ namespace WebApiAutores.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Autor>>>  Get()
         {
-            return await context.Autores.ToListAsync();
+            return await context.Autores.Include(x => x.Libros).ToListAsync();
+        }
+
+        [HttpGet("primero")]
+        public async Task<ActionResult<Autor>> Primerautor()
+        {
+            return await context.Autores.FirstOrDefaultAsync();
         }
 
         [HttpPost]
@@ -35,7 +41,7 @@ namespace WebApiAutores.Controllers
         {
             if(autor.Id != id)
             {
-                return BadRequest("El id del autor no coincide con el id de la URL");
+                return BadRequest("El id del autor no coincide con el id de la URL"); 
             }
 
             var existe = await context.Autores.AnyAsync(x => x.Id == id);
