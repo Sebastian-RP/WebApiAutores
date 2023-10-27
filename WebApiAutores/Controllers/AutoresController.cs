@@ -16,10 +16,39 @@ namespace WebApiAutores.Controllers
             this.context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<Autor>>>  Get()
+         
+        [HttpGet] //api/autores
+        [HttpGet("listado")] //api/autores/listado
+        [HttpGet("/listado")] //listado
+        public async Task<List<Autor>>  Get()
         {
             return await context.Autores.Include(x => x.Libros).ToListAsync();
+        }
+         
+        [HttpGet("{id:int}/{param2 = persona}")] //al poner el signo "?" hago ese parametro opcional /{param2?} o darle valor por defecto por ejemplo "persona"
+        public async Task<ActionResult<Autor>> Get(int id, string param2)
+        {
+            var autor = await context.Autores.FirstOrDefaultAsync(x => x.Id == id);
+
+            if(autor is null)
+            {
+                return NotFound();
+            }
+
+            return autor;
+        }
+
+        [HttpGet("{nombre}")]
+        public async Task<ActionResult<Autor>> Get(string nombre)
+        {
+            var autor = await context.Autores.FirstOrDefaultAsync(x => x.Nombre.Contains(nombre));
+
+            if (autor is null)
+            {
+                return NotFound();
+            }
+
+            return autor;
         }
 
         [HttpGet("primero")]
