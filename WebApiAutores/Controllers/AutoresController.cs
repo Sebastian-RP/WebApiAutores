@@ -39,7 +39,7 @@ namespace WebApiAutores.Controllers
         }
 
         [HttpGet("{nombre}")]
-        public async Task<ActionResult<Autor>> Get(string nombre)
+        public async Task<ActionResult<Autor>> Get([FromRoute] string nombre)
         {
             var autor = await context.Autores.FirstOrDefaultAsync(x => x.Nombre.Contains(nombre));
 
@@ -51,15 +51,21 @@ namespace WebApiAutores.Controllers
             return autor;
         }
 
-        [HttpGet("primero")]
-        public async Task<ActionResult<Autor>> Primerautor()
+        [HttpGet("primero")]//querystring
+        public async Task<ActionResult<Autor>> PrimerAutor([FromHeader] int miValor, [FromQuery] string nombre)
         {
             return await context.Autores.FirstOrDefaultAsync();
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post(Autor autor)
+        public async Task<ActionResult> Post([FromBody] Autor autor)
         {
+            var existeAutorConElMismoNombre = await context.Autores.AnyAsync(x => x.Nombre == autor.Nombre);
+            if (existeAutorConElMismoNombre)
+            {
+                return BadRequest("Ya existe un autor con el nombre");
+            }
+
             context.Add(autor);
             await context.SaveChangesAsync();
             return Ok();
