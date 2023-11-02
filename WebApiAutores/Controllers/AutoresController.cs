@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiAutores.Entidades;
+using WebApiAutores.Servicios;
 
 namespace WebApiAutores.Controllers
 {
@@ -11,11 +12,44 @@ namespace WebApiAutores.Controllers
     public class AutoresController : ControllerBase
     {
         private readonly ApplicationDbContext context;
-        public AutoresController(ApplicationDbContext context) 
+        private readonly IServicio servicio;
+        private readonly ServicioTransient servicioTransient;
+        private readonly ServicioScoped servicioScoped;
+        private readonly ServicioSingleton servicioSingleton;
+
+        //principio de inversion de dependencias(relacionado a inyeccion de dependencias), "nuestras clases deberian depender de abstracciones y no de tipos concretos"
+        //razon por la cual se le pasa una interfaz y no el tipo en concreto 
+        // ej mal: AutoresController(ApplicationDbContext context, ServicioA servicio) 
+        // ej bien: AutoresController(ApplicationDbContext context, IServicios servicio) 
+        public AutoresController(
+            ApplicationDbContext context, 
+            IServicio servicio,
+            ServicioTransient servicioTransient,
+            ServicioScoped servicioScoped,
+            ServicioSingleton servicioSingleton) 
         {
             this.context = context;
+            this.servicio = servicio;
+            this.servicioTransient = servicioTransient;
+            this.servicioScoped = servicioScoped;
+            this.servicioSingleton = servicioSingleton;
         }
 
+        [HttpGet("GUID")]
+        public ActionResult ObtenerGuids()
+        {
+            return Ok(new {
+                //transitorio siempre da una instancia distinta
+                //singlenton siempre la misma instancia
+                //scoped aca seran la misma ya que son la clase de la misma instancia
+                AutoresControllerTransient = servicioTransient.Guid,
+                ServicioA_Transient = servicio.ObtenerTransient(),
+                AutoresControllerScoped = servicioScoped.Guid,
+                ServicioA_Scoped = servicio.ObtenerScoped(),
+                AutoresControllerSingleton = servicioSingleton.Guid,
+                ServicioA_Singleton = servicio.ObtenerSingleton(),
+            });
+        }
          
         [HttpGet] //api/autores
         [HttpGet("listado")] //api/autores/listado
