@@ -14,7 +14,7 @@
             ILogger<ServicioA> logger,
             ServicioTransient servicioTransient,
             ServicioScoped servicioScoped,
-            ServicioSingleton servicioSingleton
+            ServicioSingleton servicioSingleton 
             ) 
         {
             Logger = logger;

@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using WebApiAutores.Entidades;
+using WebApiAutores.Filtros;
 using WebApiAutores.Servicios;
 
 namespace WebApiAutores.Controllers
@@ -16,6 +19,7 @@ namespace WebApiAutores.Controllers
         private readonly ServicioTransient servicioTransient;
         private readonly ServicioScoped servicioScoped;
         private readonly ServicioSingleton servicioSingleton;
+        private readonly ILogger<AutoresController> logger;
 
         //principio de inversion de dependencias(relacionado a inyeccion de dependencias), "nuestras clases deberian depender de abstracciones y no de tipos concretos"
         //razon por la cual se le pasa una interfaz y no el tipo en concreto 
@@ -26,16 +30,20 @@ namespace WebApiAutores.Controllers
             IServicio servicio,
             ServicioTransient servicioTransient,
             ServicioScoped servicioScoped,
-            ServicioSingleton servicioSingleton) 
+            ServicioSingleton servicioSingleton,
+            ILogger<AutoresController> logger) 
         {
             this.context = context;
             this.servicio = servicio;
             this.servicioTransient = servicioTransient;
             this.servicioScoped = servicioScoped;
             this.servicioSingleton = servicioSingleton;
+            this.logger = logger;
         }
 
         [HttpGet("GUID")]
+        //[ResponseCache(Duration = 10)] //almacenar el resultado de la ejecucucion de la api en cache por 10seg
+        [ServiceFilter(typeof(MiFiltroDeAccion))]
         public ActionResult ObtenerGuids()
         {
             return Ok(new {
@@ -49,13 +57,18 @@ namespace WebApiAutores.Controllers
                 AutoresControllerSingleton = servicioSingleton.Guid,
                 ServicioA_Singleton = servicio.ObtenerSingleton(),
             });
-        }
+        } 
          
         [HttpGet] //api/autores
         [HttpGet("listado")] //api/autores/listado
         [HttpGet("/listado")] //listado
+        //[Authorize] //proteccion con JWT
+        [ServiceFilter(typeof(MiFiltroDeAccion))] //filtro personalizado que ejecuta una accion antes y despues de correr este metodo
         public async Task<List<Autor>>  Get()
         {
+            throw new NotImplementedException();
+            logger.LogInformation("Estamos obteniendo los autores");
+            servicio.RealizarTarea();
             return await context.Autores.Include(x => x.Libros).ToListAsync();
         }
          
