@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using WebApiAutores.DTOs;
 using WebApiAutores.Entidades;
-using WebApiAutores.Filtros;
-using WebApiAutores.Servicios;
+using System.Linq;
 
 namespace WebApiAutores.Controllers
 {
@@ -15,65 +13,30 @@ namespace WebApiAutores.Controllers
     public class AutoresController : ControllerBase
     {
         private readonly ApplicationDbContext context;
-        private readonly IServicio servicio;
-        private readonly ServicioTransient servicioTransient;
-        private readonly ServicioScoped servicioScoped;
-        private readonly ServicioSingleton servicioSingleton;
-        private readonly ILogger<AutoresController> logger;
+        private readonly IMapper mapper;
 
         //principio de inversion de dependencias(relacionado a inyeccion de dependencias), "nuestras clases deberian depender de abstracciones y no de tipos concretos"
         //razon por la cual se le pasa una interfaz y no el tipo en concreto 
         // ej mal: AutoresController(ApplicationDbContext context, ServicioA servicio) 
         // ej bien: AutoresController(ApplicationDbContext context, IServicios servicio) 
         public AutoresController(
-            ApplicationDbContext context, 
-            IServicio servicio,
-            ServicioTransient servicioTransient,
-            ServicioScoped servicioScoped,
-            ServicioSingleton servicioSingleton,
-            ILogger<AutoresController> logger) 
+            ApplicationDbContext context,
+            IMapper mapper
+            ) 
         {
             this.context = context;
-            this.servicio = servicio;
-            this.servicioTransient = servicioTransient;
-            this.servicioScoped = servicioScoped;
-            this.servicioSingleton = servicioSingleton;
-            this.logger = logger;
+            this.mapper = mapper;
         }
-
-        [HttpGet("GUID")]
-        //[ResponseCache(Duration = 10)] //almacenar el resultado de la ejecucucion de la api en cache por 10seg
-        [ServiceFilter(typeof(MiFiltroDeAccion))]
-        public ActionResult ObtenerGuids()
-        {
-            return Ok(new {
-                //transitorio siempre da una instancia distinta
-                //singlenton siempre la misma instancia
-                //scoped aca seran la misma ya que son la clase de la misma instancia
-                AutoresControllerTransient = servicioTransient.Guid,
-                ServicioA_Transient = servicio.ObtenerTransient(),
-                AutoresControllerScoped = servicioScoped.Guid,
-                ServicioA_Scoped = servicio.ObtenerScoped(),
-                AutoresControllerSingleton = servicioSingleton.Guid,
-                ServicioA_Singleton = servicio.ObtenerSingleton(),
-            });
-        } 
          
         [HttpGet] //api/autores
-        [HttpGet("listado")] //api/autores/listado
-        [HttpGet("/listado")] //listado
-        //[Authorize] //proteccion con JWT
-        [ServiceFilter(typeof(MiFiltroDeAccion))] //filtro personalizado que ejecuta una accion antes y despues de correr este metodo
-        public async Task<List<Autor>>  Get()
+        public async Task<List<AutorDTO>>  Get()
         {
-            throw new NotImplementedException();
-            logger.LogInformation("Estamos obteniendo los autores");
-            servicio.RealizarTarea();
-            return await context.Autores.Include(x => x.Libros).ToListAsync();
+            var autores = await context.Autores.ToListAsync();
+            return mapper.Map<List<AutorDTO>>(autores);
         }
          
-        [HttpGet("{id:int}/{param2 = persona}")] //al poner el signo "?" hago ese parametro opcional /{param2?} o darle valor por defecto por ejemplo "persona"
-        public async Task<ActionResult<Autor>> Get(int id, string param2)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<AutorDTO>> Get(int id)
         {
             var autor = await context.Autores.FirstOrDefaultAsync(x => x.Id == id);
 
@@ -82,20 +45,15 @@ namespace WebApiAutores.Controllers
                 return NotFound();
             }
 
-            return autor;
+            return mapper.Map<AutorDTO>(autor);
         }
 
         [HttpGet("{nombre}")]
-        public async Task<ActionResult<Autor>> Get([FromRoute] string nombre)
+        public async Task<ActionResult<List<AutorDTO>>> Get([FromRoute] string nombre)
         {
-            var autor = await context.Autores.FirstOrDefaultAsync(x => x.Nombre.Contains(nombre));
+            var autores = await context.Autores.Where(autorBD => autorBD.Nombre.Contains(nombre)).ToListAsync();
 
-            if (autor is null)
-            {
-                return NotFound();
-            }
-
-            return autor;
+            return mapper.Map<List<AutorDTO>>(autores);
         }
 
         [HttpGet("primero")]//querystring
@@ -105,13 +63,15 @@ namespace WebApiAutores.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] Autor autor)
+        public async Task<ActionResult> Post([FromBody] AutorCreacionDTO AutorCreacionDTO)
         {
-            var existeAutorConElMismoNombre = await context.Autores.AnyAsync(x => x.Nombre == autor.Nombre);
+            var existeAutorConElMismoNombre = await context.Autores.AnyAsync(x => x.Nombre == AutorCreacionDTO.Nombre);
             if (existeAutorConElMismoNombre)
             {
-                return BadRequest("Ya existe un autor con el nombre");
+                return BadRequest($"Ya existe un autor con el nombre {AutorCreacionDTO.Nombre}");
             }
+
+            var autor = mapper.Map<Autor>(AutorCreacionDTO);
 
             context.Add(autor);
             await context.SaveChangesAsync();

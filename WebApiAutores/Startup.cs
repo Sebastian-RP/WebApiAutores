@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
-using WebApiAutores.Controllers;
-using WebApiAutores.Filtros;
 using WebApiAutores.Servicios;
 
 namespace WebApiAutores
 {
     public class Startup
     {
+        //el uso de IConfiguration me permite leer el conectionString de appSettings
         public Startup(IConfiguration configuration) 
         {
             Configuration = configuration;
@@ -18,10 +17,7 @@ namespace WebApiAutores
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers(options =>
-            {
-                options.Filters.Add(typeof(FiltroDeExcepcion)); //agregar el filtro de manera global en los metodos
-            }).AddJsonOptions(x => 
+            services.AddControllers().AddJsonOptions(x => 
                 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
@@ -30,13 +26,8 @@ namespace WebApiAutores
             );
 
             //donde encuentre que requiere una instancia de la interfaz IServicio, se le pasara por defecto ServicioA services.AddTransient<IServicio, ServicioA>();
-            services.AddTransient<IServicio, ServicioA>();
-
-            services.AddTransient<ServicioTransient>();
-            services.AddScoped<ServicioScoped>();
-            services.AddSingleton<ServicioSingleton>();
-            services.AddTransient<MiFiltroDeAccion>();
-            services.AddHostedService<EscribirEnArchivo>();
+            
+            //services.AddHostedService<EscribirEnArchivo>();
 
             services.AddResponseCaching();
 
@@ -44,20 +35,14 @@ namespace WebApiAutores
 
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
+
+            services.AddAutoMapper(typeof(Startup));
         }
 
         //Use this method to configure the HTTP request Pipeline
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             //los que tienen "app." son middlewares
-            //si ingresa a esta ruta ejecuta este middleware
-            app.Map("/ruta1", app =>
-            {
-                app.Run(async contexto =>
-                {
-                    await contexto.Response.WriteAsync("Estoy interceptando la tuberia");
-                });
-            });
 
             if (env.IsDevelopment())
             {
@@ -68,8 +53,6 @@ namespace WebApiAutores
             app.UseHttpsRedirection();
 
             app.UseRouting();
-
-            app.UseResponseCaching();
 
             app.UseAuthorization();
 

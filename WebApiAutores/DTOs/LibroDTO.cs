@@ -1,12 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using WebApiAutores.Validaciones;
 
-namespace WebApiAutores.Entidades
+namespace WebApiAutores.DTOs
 {
-    public class Libro
+    public class LibroDTO
     {
         public int Id { get; set; }
-        [Required]
         public string? Titulo { get; set; }
-        public List<Comentario>? Comentario { get;}
     }
 }

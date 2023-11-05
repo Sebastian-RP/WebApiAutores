@@ -1,12 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using WebApiAutores.Validaciones;
 
-namespace WebApiAutores.Entidades
+namespace WebApiAutores.DTOs
 {
-    public class Autor
+    public class AutorCreacionDTO
     {
-        public int Id { get; set; }
+        //DTO es agregar una capa extra donde este sera el objeto que se entregara al controlador en vez de la entidad directamentes
         [Required(ErrorMessage = "El campo {0} es requerido")]
         [StringLength(maximumLength: 99, ErrorMessage = "El campo {0} debe tener maximo 99 caracteres")]
         [PrimeraLetraMayuscula]
