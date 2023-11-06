@@ -57,7 +57,7 @@ namespace WebApiAutores.Migrations
 
                     b.HasIndex("LibroId");
 
-                    b.ToTable("Comentario");
+                    b.ToTable("Comentarios");
                 });
 
             modelBuilder.Entity("WebApiAutores.Entidades.Libro", b =>
@@ -70,7 +70,8 @@ namespace WebApiAutores.Migrations
 
                     b.Property<string>("Titulo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.HasKey("Id");
 
@@ -79,16 +80,18 @@ namespace WebApiAutores.Migrations
 
             modelBuilder.Entity("WebApiAutores.Entidades.Comentario", b =>
                 {
-                    b.HasOne("WebApiAutores.Entidades.Libro", null)
-                        .WithMany("Comentario")
+                    b.HasOne("WebApiAutores.Entidades.Libro", "Libro")
+                        .WithMany("Comentarios")
                         .HasForeignKey("LibroId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Libro");
                 });
 
             modelBuilder.Entity("WebApiAutores.Entidades.Libro", b =>
                 {
-                    b.Navigation("Comentario");
+                    b.Navigation("Comentarios");
                 });
 #pragma warning restore 612, 618
         }
