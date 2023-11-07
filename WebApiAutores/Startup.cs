@@ -18,7 +18,7 @@ namespace WebApiAutores
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers().AddJsonOptions(x => 
-                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles).AddNewtonsoftJson();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
             services.AddDbContext<ApplicationDbContext>(options =>

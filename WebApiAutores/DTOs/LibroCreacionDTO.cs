@@ -8,5 +8,6 @@ namespace WebApiAutores.DTOs
         //DTO es agregar una capa extra donde este sera el objeto que se entregara al controlador en vez de la entidad directamentes
         [PrimeraLetraMayuscula]
         public string? Titulo { get; set; }
+        public List<int>? AutoresIds { get; set; }
     }
 }

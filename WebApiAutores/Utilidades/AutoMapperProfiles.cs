@@ -10,10 +10,68 @@ namespace WebApiAutores.Utilidades
         {
             CreateMap<AutorCreacionDTO, Autor>();
             CreateMap<Autor, AutorDTO>();
-            CreateMap<LibroCreacionDTO, Libro>();
+            CreateMap<Autor, AutorDTOConLibros>()
+                .ForMember(autorDTO => autorDTO.libros, opciones => opciones.MapFrom(MapautorDTOLibros));
+
+            CreateMap<LibroCreacionDTO, Libro>()
+                .ForMember(libro => libro.AutoresLibros, opciones => opciones.MapFrom(MapAutoresLibros));
+
             CreateMap<Libro, LibroDTO>();
+            CreateMap<Libro, LibroDTOConAutores>() 
+                .ForMember(libroDTO => libroDTO.Autores, opciones => opciones.MapFrom(MapLibroDTOAutores));
+
             CreateMap<ComentariocreacionDTO, Comentario>();
             CreateMap<Comentario, ComentarioDTO>();
+        }
+
+        private List<LibroDTO> MapautorDTOLibros(Autor autor, AutorDTO autorDTO)
+        {
+            var resultado = new List<LibroDTO>();
+
+            if(autor.AutoresLibros == null ) { return resultado; }
+
+            foreach(var autorLibro in autor.AutoresLibros)
+            {
+                resultado.Add(new LibroDTO()
+                {
+                    Id = autorLibro.LibroId,
+                    Titulo = autorLibro.Libro.Titulo
+                });
+            }
+
+            return resultado;
+        }
+
+        private List<AutorDTO> MapLibroDTOAutores(Libro libro, LibroDTO LibroDTO)
+        {
+            var resultado = new List<AutorDTO>();
+
+            if(libro.AutoresLibros == null) { return resultado; }
+
+            foreach(var autorLibro in libro.AutoresLibros)
+            {
+                resultado.Add(new AutorDTO()
+                {
+                    Id = autorLibro.AutorId,
+                    Nombre = autorLibro.Autor.Nombre
+                });
+            }
+
+            return resultado;
+        }
+
+        private List<AutorLibro> MapAutoresLibros(LibroCreacionDTO libroCreacionDTO, Libro libro)
+        {
+            var resultado = new List<AutorLibro>();
+
+            if (libroCreacionDTO.AutoresIds == null) { return resultado; }
+
+            foreach (var autorId in libroCreacionDTO.AutoresIds)
+            {
+                resultado.Add(new AutorLibro() { AutorId = autorId });
+            }
+
+            return resultado;
         }
     }
 }
