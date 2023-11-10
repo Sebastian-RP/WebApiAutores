@@ -14,6 +14,7 @@ namespace WebApiAutores.Controllers
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
+        private readonly IConfiguration configuration;
 
         //principio de inversion de dependencias(relacionado a inyeccion de dependencias), "nuestras clases deberian depender de abstracciones y no de tipos concretos"
         //razon por la cual se le pasa una interfaz y no el tipo en concreto 
@@ -21,11 +22,13 @@ namespace WebApiAutores.Controllers
         // ej bien: AutoresController(ApplicationDbContext context, IServicios servicio) 
         public AutoresController(
             ApplicationDbContext context,
-            IMapper mapper
+            IMapper mapper,
+            IConfiguration configuration
             ) 
         {
             this.context = context;
             this.mapper = mapper;
+            this.configuration = configuration;
         }
          
         [HttpGet] //api/autores
@@ -33,6 +36,16 @@ namespace WebApiAutores.Controllers
         {
             var autores = await context.Autores.ToListAsync();
             return mapper.Map<List<AutorDTO>>(autores);
+        }
+
+        [HttpGet("configuraciones")]
+        public ActionResult<string> ObtenerConfiguracion()
+        {
+            //prioriza variable de ambiente antes que appSetting - si hay coincidencia de campos toma la ultima modificacion (cambio más reciente)
+
+            //viendoe el codigo de IConfiguration variables de ambiente tiene precedencia sobre el userSecret que es json y userSecret tiene precedencia sobre appSetting
+            //configuration["apellido"];
+            return configuration["ConnectionStrings:defaultConnection"];
         }
          
         [HttpGet("{id:int}")]
