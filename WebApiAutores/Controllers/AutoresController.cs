@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using WebApiAutores.DTOs;
 using WebApiAutores.Entidades;
 using System.Linq;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApiAutores.Controllers
 {
@@ -32,6 +35,8 @@ namespace WebApiAutores.Controllers
         }
          
         [HttpGet] //api/autores
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")]
+        [AllowAnonymous] //no solicita token
         public async Task<List<AutorDTO>>  Get()
         {
             var autores = await context.Autores.ToListAsync();
