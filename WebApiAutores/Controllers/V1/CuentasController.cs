@@ -10,10 +10,10 @@ using System.Text;
 using WebApiAutores.DTOs;
 using WebApiAutores.Servicios;
 
-namespace WebApiAutores.Controllers
+namespace WebApiAutores.Controllers.V1
 {
     [ApiController]
-    [Route("api/cuentas")]
+    [Route("api/v1/cuentas")]
     public class CuentasController : ControllerBase
     {
         private readonly UserManager<IdentityUser> userManager;
@@ -44,7 +44,7 @@ namespace WebApiAutores.Controllers
             var resultado2 = hashService.Hash(textoPlano);
             return Ok(new
             {
-                textoPlano = textoPlano,
+                textoPlano,
                 Hash1 = resultado1,
                 Hash2 = resultado2
             });
@@ -59,9 +59,9 @@ namespace WebApiAutores.Controllers
 
             return Ok(new
             {
-                textoPlano = textoPlano,
-                textoCifrado = textoCifrado,
-                textoDesencriptado = textoDesencriptado
+                textoPlano,
+                textoCifrado,
+                textoDesencriptado
             });
         }
 
@@ -77,19 +77,19 @@ namespace WebApiAutores.Controllers
 
             return Ok(new
             {
-                textoPlano = textoPlano,
-                textoCifrado = textoCifrado,
-                textoDesencriptado = textoDesencriptado
+                textoPlano,
+                textoCifrado,
+                textoDesencriptado
             });
         }
 
-        [HttpPost("registrar")] //api/cuentas/registrar
+        [HttpPost("registrar", Name = "registrarUsuario")] //api/cuentas/registrar
         public async Task<ActionResult<RepuestaAutenticacion>> Registrar(CredencialesUsuario credencialesUsuario)
         {
             var usuario = new IdentityUser { UserName = credencialesUsuario.Email, Email = credencialesUsuario.Email };
             var resultado = await userManager.CreateAsync(usuario, credencialesUsuario.Password);
 
-            if(resultado.Succeeded)
+            if (resultado.Succeeded)
             {
                 return await ConstruirToken(credencialesUsuario);
             }
@@ -99,7 +99,7 @@ namespace WebApiAutores.Controllers
             }
         }
 
-        [HttpPost("login")]
+        [HttpPost("login", Name = "loginUsuario")]
         public async Task<ActionResult<RepuestaAutenticacion>> Login(CredencialesUsuario credencialesUsuario)
         {
             var resultado = await signInManager.PasswordSignInAsync(credencialesUsuario.Email,
@@ -107,7 +107,7 @@ namespace WebApiAutores.Controllers
                                                                          isPersistent: false,
                                                                          lockoutOnFailure: false);
 
-            if(resultado.Succeeded)
+            if (resultado.Succeeded)
             {
                 return await ConstruirToken(credencialesUsuario);
             }
@@ -117,7 +117,7 @@ namespace WebApiAutores.Controllers
             }
         }
 
-        [HttpGet("RenovarToken")]
+        [HttpGet("RenovarToken", Name = "RenovarToken")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<RepuestaAutenticacion>> Renovar()
         {
@@ -156,7 +156,7 @@ namespace WebApiAutores.Controllers
             };
         }
 
-        [HttpPost("HacerAdmin")]
+        [HttpPost("HacerAdmin", Name = "HacerAdmin")]
         public async Task<ActionResult> HacerAdmin(EditarAdminDTO editarAdminDTO)
         {
             var usuario = await userManager.FindByEmailAsync(editarAdminDTO.Email);
@@ -164,7 +164,7 @@ namespace WebApiAutores.Controllers
             return NoContent();
         }
 
-        [HttpPost("RemoverAdmin")]
+        [HttpPost("RemoverAdmin", Name = "removerAdmin")]
         public async Task<ActionResult> RemoverAdmin(EditarAdminDTO editarAdminDTO)
         {
             var usuario = await userManager.FindByEmailAsync(editarAdminDTO.Email);
